@@ -8,7 +8,12 @@ with open(os.path.join(here, 'README.md')) as f:
     README = f.read()
 
 requires = [
-      'requests'
+      'tornado',
+      'requests',
+      "pytest",
+      "SQLalchemy",
+      'zope.sqlalchemy',
+      'PyMysql'
     ]
 
 setup(name='Cockoo',
