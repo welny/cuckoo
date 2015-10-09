@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import json
+from binascii import a2b_hex, b2a_hex
+
+from model.utils import *
 
 MAX_PAYLOAD_LENGTH = 2048
 
@@ -81,3 +84,61 @@ class PayloadTooLargeError(Exception):
     def __init__(self, payload_size):
         super(PayloadTooLargeError, self).__init__()
         self.payload_size = payload_size
+
+
+class Frame(object):
+    """A class representing an APNs message frame for multiple sending"""
+    def __init__(self):
+        self.frame_data = bytearray()
+        self.notification_data = list()
+
+    def get_frame(self):
+        return self.frame_data
+
+    def add_item(self, token_hex, payload, identifier, expiry, priority):
+        """Add a notification message to the frame"""
+        item_len = 0
+        self.frame_data.extend(b'\2' + packed_uint_big_endian(item_len))
+
+        token_bin = a2b_hex(token_hex)
+        token_length_bin = packed_ushort_big_endian(len(token_bin))
+        token_item = b'\1' + token_length_bin + token_bin
+        self.frame_data.extend(token_item)
+        item_len += len(token_item)
+
+        payload_json = payload.json()
+        payload_length_bin = packed_ushort_big_endian(len(payload_json))
+        payload_item = b'\2' + payload_length_bin + payload_json
+        self.frame_data.extend(payload_item)
+        item_len += len(payload_item)
+
+        identifier_bin = packed_uint_big_endian(identifier)
+        identifier_length_bin = packed_ushort_big_endian(len(identifier_bin))
+        identifier_item = b'\3' + identifier_length_bin + identifier_bin
+        self.frame_data.extend(identifier_item)
+        item_len += len(identifier_item)
+
+        expiry_bin = packed_uint_big_endian(expiry)
+        expiry_length_bin = packed_ushort_big_endian(len(expiry_bin))
+        expiry_item = b'\4' + expiry_length_bin + expiry_bin
+        self.frame_data.extend(expiry_item)
+        item_len += len(expiry_item)
+
+        priority_bin = packed_uchar(priority)
+        priority_length_bin = packed_ushort_big_endian(len(priority_bin))
+        priority_item = b'\5' + priority_length_bin + priority_bin
+        self.frame_data.extend(priority_item)
+        item_len += len(priority_item)
+
+        self.frame_data[-item_len-4:-item_len] = packed_uint_big_endian(item_len)
+
+        self.notification_data.append({'token':token_hex, 'payload':payload, 'identifier':identifier, 'expiry':expiry, "priority":priority})
+
+    def get_notifications(self, gateway_connection):
+        notifications = list({'id': x['identifier'], 'message':gateway_connection._get_enhanced_notification(x['token'], x['payload'],x['identifier'], x['expiry'])} for x in self.notification_data)
+        return notifications
+
+    def __str__(self):
+        """Get the frame buffer"""
+        return str(self.frame_data)
+

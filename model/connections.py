@@ -21,19 +21,7 @@ from _ssl import SSL_ERROR_WANT_READ, SSL_ERROR_WANT_WRITE
 from model.utils import *
 from settings import provider_log
 
-
-
-NOTIFICATION_COMMAND = 0
 ENHANCED_NOTIFICATION_COMMAND = 1
-
-NOTIFICATION_FORMAT = (
-     '!'   # network big-endian
-     'B'   # command
-     'H'   # token length
-     '32s' # token
-     'H'   # payload length
-     '%ds' # payload
-    )
 
 ENHANCED_NOTIFICATION_FORMAT = (
      '!'   # network big-endian
@@ -60,6 +48,7 @@ SENT_BUFFER_QTY = 100000
 WAIT_WRITE_TIMEOUT_SEC = 10
 WAIT_READ_TIMEOUT_SEC = 10
 WRITE_RETRY = 3
+
 
 class APNService:
 
@@ -110,11 +99,11 @@ class Connection(object):
         self.connection_alive = False
 
     def __del__(self):
-        self._disconnect();
+        self._disconnect()
 
     def _connect(self):
         # Establish an SSL connection
-        provider_log.debug("%s APNS connection establishing..." % self.__class__.__name__)
+        provider_log.debug("APNS connection establishing...")
 
         # Fallback for socket timeout.
         for i in range(3):
@@ -145,7 +134,7 @@ class Connection(object):
                     raise
 
         self.connection_alive = True
-        provider_log.debug("%s APNS connection established" % self.__class__.__name__)
+        provider_log.debug("APNS connection established")
 
     def _disconnect(self):
         if self.connection_alive:
@@ -154,7 +143,6 @@ class Connection(object):
             if self._ssl:
                 self._ssl.close()
             self.connection_alive = False
-            provider_log.info(" %s APNS connection closed" % self.__class__.__name__)
 
     def _connection(self):
         if not self._ssl or not self.connection_alive:
@@ -257,24 +245,6 @@ class GatewayConnection(Connection):
         self._error_response_handler_worker.start()
         provider_log.debug("initialized error-response handler worker")
 
-    def _get_notification(self, token_hex, payload):
-        """
-        Takes a token as a hex string and a payload as a Python dict and sends
-        the notification
-        """
-        token_bin = a2b_hex(token_hex)
-        token_length_bin = packed_ushort_big_endian(len(token_bin))
-        payload_json = payload.json()
-        payload_length_bin = packed_ushort_big_endian(len(payload_json))
-
-        zero_byte = '\0'
-        if sys.version_info[0] != 2:
-            zero_byte = bytes(zero_byte, 'utf-8')
-        notification = (zero_byte + token_length_bin + token_bin
-            + payload_length_bin + payload_json)
-
-        return notification
-
     def _get_enhanced_notification(self, token_hex, payload, identifier, expiry):
         """
         form notification data in an enhanced format
@@ -291,8 +261,7 @@ class GatewayConnection(Connection):
         in enhanced mode, send_notification may return error response from APNs if any
         """
         self._last_activity_time = time.time()
-        message = self._get_enhanced_notification(token_hex, payload,
-                                                       identifier, expiry)
+        message = self._get_enhanced_notification(token_hex, payload, identifier, expiry)
 
         for i in range(WRITE_RETRY):
             try:
@@ -309,8 +278,7 @@ class GatewayConnection(Connection):
                 time.sleep(delay) # wait potential error-response to be read
 
     def _make_sure_error_response_handler_worker_alive(self):
-        if (not self._error_response_handler_worker
-            or not self._error_response_handler_worker.is_alive()):
+        if (not self._error_response_handler_worker or not self._error_response_handler_worker.is_alive()):
             self._init_error_response_handler_worker()
             TIMEOUT_SEC = 10
             for _ in range(TIMEOUT_SEC):
@@ -334,6 +302,7 @@ class GatewayConnection(Connection):
     def _is_idle_timeout(self):
         TIMEOUT_IDLE = 30
         return (time.time() - self._last_activity_time) >= TIMEOUT_IDLE
+
 
     class ErrorResponseHandlerWorker(threading.Thread):
         def __init__(self, apns_connection):
@@ -405,4 +374,3 @@ class GatewayConnection(Connection):
                     provider_log.exception("resending notification with id:" + str(sent_notification['id']) + " failed: " + str(type(e)) + ": " + str(e)) #DEBUG
                     break
                 time.sleep(DELAY_RESEND_SEC) #DEBUG
-
