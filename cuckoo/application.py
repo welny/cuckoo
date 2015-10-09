@@ -33,8 +33,8 @@ if __name__ == "__main__":
     app = Application()
 
     import random, time
-    from model.connections import APNService
-    from model.messages import Payload, Frame
+    from cuckoo.model.connections import APNService
+    from cuckoo.model.messages import Payload, Frame
 
     apn = APNService(cert_file="certs/pushcert_dev.pem", key_file=None, sandbox=True)
     frame = Frame()
