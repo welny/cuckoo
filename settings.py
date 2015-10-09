@@ -12,8 +12,6 @@ from tornado.log import LogFormatter
 from tornado.options import (
     define
 )
-from handlers.notifications import Error404
-
 # Make filepaths relative to settings.
 path = lambda root,*a: os.path.join(root, *a)
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -23,34 +21,14 @@ TEMPLATE_ROOT = path(ROOT, 'templates')
 LOG_FOLDER = 'logs'
 
 formatter = LogFormatter()
-SMTPhandler = logging.handlers.SMTPHandler('smtp.megiteam.pl', 'noreply@talksinthecity.pl', 'bookm.Marcin.Ola+webapp@biokod.flowdock.com', 'Bookm Log',
+SMTPhandler = logging.handlers.SMTPHandler('smtp.megiteam.pl', 'noreply@talksinthecity.pl', 'bookm.Marcin.Ola+webapp@biokod.flowdock.com', 'Cuckoo Log',
                                            ('noreply@talksinthecity.pl', 'AQqWxayK9iy3'))
-sql_log =  logging.getLogger('sqlalchemy.engine')
-sql_log.setLevel(logging.WARNING)
-
-sqlLogHandler = logging.handlers.TimedRotatingFileHandler(os.path.join(ROOT, LOG_FOLDER, 'bookm-sql.log'), when='midnight')
-sqlLogHandler.setFormatter(formatter)
-sql_log.addHandler(sqlLogHandler)
-
-app_log = logging.getLogger("tornado.application")
-app_log.setLevel(logging.DEBUG)
-appLogHandler = logging.handlers.TimedRotatingFileHandler(os.path.join(ROOT, LOG_FOLDER, 'bookm-app.log'), when='midnight')
-appLogHandler.setFormatter(formatter)
-app_log.addHandler(appLogHandler)
-#app_log.addHandler(SMTPhandler)
-
-access_log = logging.getLogger("tornado.access")
-access_log.setLevel(logging.DEBUG)
-accessLogHandler = logging.handlers.TimedRotatingFileHandler(os.path.join(ROOT, LOG_FOLDER, 'bookm-access.log'), when='midnight')
-accessLogHandler.setFormatter(formatter)
-access_log.addHandler(accessLogHandler)
-
-general_log = logging.getLogger("tornado.general")
-general_log.setLevel(logging.DEBUG)
-generalLogHandler = logging.handlers.TimedRotatingFileHandler(os.path.join(ROOT, LOG_FOLDER, 'bookm-general.log'), when='midnight')
-generalLogHandler.setFormatter(formatter)
-general_log.addHandler(generalLogHandler)
-#general_log.addHandler(SMTPhandler)
+provider_log = logging.getLogger("cuckoo")
+provider_log.setLevel(logging.DEBUG)
+providerLogHandler = logging.handlers.TimedRotatingFileHandler(os.path.join(ROOT, LOG_FOLDER, 'cuckoo-general.log'), when='midnight')
+providerLogHandler.setFormatter(formatter)
+provider_log.addHandler(providerLogHandler)
+#provider_log.addHandler(SMTPhandler)
 
 define("debug", default=True)
 define("port", default=8929)

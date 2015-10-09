@@ -30,10 +30,17 @@ def db_connection(prefix='sqlalchemy_'):
 
 if __name__ == "__main__":
 
-    db_connection()
+    #db_connection()
 
     app = Application()
 
-    http_server = tornado.httpserver.HTTPServer(app)
-    http_server.listen(options.port)
-    tornado.ioloop.IOLoop.current().start()
+    from model.connections import APNService
+    from model.messages import Payload
+
+    apn = APNService(cert_file="certs/pushcert_dev.pem", key_file=None, sandbox=True)
+    payload = Payload(alert="Hello World!", badge=1)
+    apn.gateway_server.send_notification("99036da8fa94117c2ac999fdb3fa7275f42cc5fa851e2cccc1ad03937c7ed8d1", payload)
+
+    #http_server = tornado.httpserver.HTTPServer(app)
+    #http_server.listen(options.port)
+    #tornado.ioloop.IOLoop.current().start()
