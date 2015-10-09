@@ -18,8 +18,8 @@ except ImportError:
 
 from _ssl import SSL_ERROR_WANT_READ, SSL_ERROR_WANT_WRITE
 
-from model.utils import *
-from settings import provider_log
+from cuckoo.model.utils import *
+from cuckoo.settings import provider_log
 
 ENHANCED_NOTIFICATION_COMMAND = 1
 

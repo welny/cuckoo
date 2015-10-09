@@ -2,7 +2,7 @@
 import json
 from binascii import a2b_hex, b2a_hex
 
-from model.utils import *
+from cuckoo.model.utils import *
 
 MAX_PAYLOAD_LENGTH = 2048
 

@@ -6,9 +6,9 @@ import tornado.ioloop
 import tornado.web
 from tornado.options import options
 
-import settings
-from urls import url_patterns
-from model import (
+import cuckoo.settings
+from cuckoo.urls import url_patterns
+from cuckoo.model import (
     DBSession,
     Base
 )
