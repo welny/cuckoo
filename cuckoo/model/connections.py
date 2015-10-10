@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from binascii import a2b_hex, b2a_hex
 from datetime import datetime
 from socket import (
@@ -16,13 +17,9 @@ try:
 except ImportError:
     from socket import ssl as wrap_socket, sslerror as SSLError
 
-from _ssl import SSL_ERROR_WANT_READ, SSL_ERROR_WANT_WRITE
-
 from cuckoo.model.utils import *
-from cuckoo.settings import provider_log
 
 ENHANCED_NOTIFICATION_COMMAND = 1
-
 ENHANCED_NOTIFICATION_FORMAT = (
      '!'   # network big-endian
      'B'   # command
@@ -33,7 +30,6 @@ ENHANCED_NOTIFICATION_FORMAT = (
      'H'   # payload length
      '%ds' # payload
     )
-
 ERROR_RESPONSE_FORMAT = (
      '!'   # network big-endian
      'B'   # command
@@ -48,6 +44,8 @@ SENT_BUFFER_QTY = 100000
 WAIT_WRITE_TIMEOUT_SEC = 10
 WAIT_READ_TIMEOUT_SEC = 10
 WRITE_RETRY = 3
+
+provider_log = logging.getLogger("cuckoo")
 
 
 class APNService:

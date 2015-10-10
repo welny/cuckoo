@@ -7,17 +7,10 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.md')) as f:
     README = f.read()
 
-requires = [
-      'tornado',
-      'requests',
-      "pytest",
-      "SQLalchemy",
-      'zope.sqlalchemy',
-      'PyMysql'
-    ]
+requires = []
 
 setup(name='Cockoo',
-      version='0.5.0',
+      version='0.5.1',
       description='Cuckoo Apple push notifications server',
       long_description=README,
       classifiers=[
@@ -29,7 +22,7 @@ setup(name='Cockoo',
       author='Biokod Lab Sp. z o.o.',
       author_email='biuro@biokod.pl',
       url='',
-      keywords='web wsgi bfg application',
+      keywords='apple push notification',
       packages=find_packages(),
       include_package_data=True,
       zip_safe=False,
