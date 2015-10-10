@@ -153,14 +153,13 @@ class Connection(object):
         return self._connection().read(n)
 
     def write(self, string):
-
         self._last_activity_time = time.time()
         _, wlist, _ = select.select([], [self._connection()], [], WAIT_WRITE_TIMEOUT_SEC)
 
         if len(wlist) > 0:
             length = self._connection().sendall(string)
             if length == 0:
-                provider_log.debug("sent length: %d" % length) #DEBUG
+                provider_log.debug("sent length: %d" % length)  # DEBUG
         else:
             provider_log.warning("write socket descriptor is not ready after " + str(WAIT_WRITE_TIMEOUT_SEC))
 
@@ -218,6 +217,7 @@ class FeedbackConnection(Connection):
                     # break out of inner while loop - i.e. go and fetch
                     # some more data and append to buffer
                     break
+
 
 class GatewayConnection(Connection):
     """
@@ -303,7 +303,6 @@ class GatewayConnection(Connection):
         TIMEOUT_IDLE = 30
         return (time.time() - self._last_activity_time) >= TIMEOUT_IDLE
 
-
     class ErrorResponseHandlerWorker(threading.Thread):
         def __init__(self, apns_connection):
             threading.Thread.__init__(self, name=self.__class__.__name__)
@@ -347,19 +346,19 @@ class GatewayConnection(Connection):
                                 provider_log.warning("read socket got 0 bytes data") #DEBUG
                                 self._apns_connection._disconnect()
 
-                except socket_error as e: # APNS close connection arbitrarily
+                except socket_error as e:  # APNS close connection arbitrarily
                     provider_log.exception("exception occur when reading APNS error-response: " + str(type(e)) + ": " + str(e)) #DEBUG
                     self._apns_connection._disconnect()
                     continue
 
-                time.sleep(0.1) #avoid crazy loop if something bad happened. e.g. using invalid certificate
+                time.sleep(0.1)  # avoid crazy loop if something bad happened. e.g. using invalid certificate
 
             self._apns_connection._disconnect()
-            provider_log.debug("error-response handler worker closed") #DEBUG
+            provider_log.debug("error-response handler worker closed")  # DEBUG
 
         def _resend_notifications_by_id(self, failed_identifier):
             fail_idx = getListIndexFromID(self._apns_connection._sent_notifications, failed_identifier)
-            #pop-out success notifications till failed one
+            # pop-out success notifications till failed one
             self._resend_notification_by_range(fail_idx+1, len(self._apns_connection._sent_notifications))
             return
 
@@ -373,4 +372,4 @@ class GatewayConnection(Connection):
                 except socket_error as e:
                     provider_log.exception("resending notification with id:" + str(sent_notification['id']) + " failed: " + str(type(e)) + ": " + str(e)) #DEBUG
                     break
-                time.sleep(DELAY_RESEND_SEC) #DEBUG
+                time.sleep(DELAY_RESEND_SEC)  # DEBUG

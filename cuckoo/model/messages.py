@@ -1,20 +1,24 @@
 # -*- coding: utf-8 -*-
 import json
-from binascii import a2b_hex, b2a_hex
+from binascii import a2b_hex
 
 from cuckoo.model.utils import *
 
 MAX_PAYLOAD_LENGTH = 2048
 
+
 class Payload(object):
     """A class representing an APNs message payload"""
-    def __init__(self, alert=None, badge=None, sound=None, category=None, custom={}, content_available=False):
+    def __init__(self, alert=None, badge=None, sound=None, category=None, custom=None, content_available=False):
         super(Payload, self).__init__()
         self.alert = alert
         self.badge = badge
         self.sound = sound
         self.category = category
-        self.custom = custom
+        if not custom:
+            self.custom = {}
+        else:
+            self.custom = custom
         self.content_available = content_available
         self._check_size()
 
@@ -38,12 +42,12 @@ class Payload(object):
         if self.content_available:
             d.update({'content-available': 1})
 
-        d = { 'aps': d }
+        d = {'aps': d}
         d.update(self.custom)
         return d
 
     def json(self):
-        return json.dumps(self.dict(), separators=(',',':'), ensure_ascii=False).encode('utf-8')
+        return json.dumps(self.dict(), separators=(',', ':'), ensure_ascii=False).encode('utf-8')
 
     def _check_size(self):
         payload_length = len(self.json())
@@ -55,11 +59,15 @@ class Payload(object):
         args = ", ".join(["%s=%r" % (n, getattr(self, n)) for n in attrs])
         return "%s(%s)" % (self.__class__.__name__, args)
 
+
 class PayloadAlert(object):
-    def __init__(self, body=None, action_loc_key=None, loc_key=None,
-                 loc_args=None, launch_image=None):
+    def __init__(self, title=None, body=None, title_loc_key=None, title_loc_args=None, action_loc_key=None,
+                 loc_key=None, loc_args=None, launch_image=None):
         super(PayloadAlert, self).__init__()
+        self.title = title
         self.body = body
+        self.title_loc_key = title_loc_key
+        self.title_loc_args = title_loc_args
         self.action_loc_key = action_loc_key
         self.loc_key = loc_key
         self.loc_args = loc_args
@@ -67,8 +75,14 @@ class PayloadAlert(object):
 
     def dict(self):
         d = {}
+        if self.title:
+            d['title'] = self.title
         if self.body:
             d['body'] = self.body
+        if self.title_loc_key:
+            d['title-loc-key'] = self.title_loc_key
+        if self.title_loc_args:
+            d['title-loc-args'] = self.title_loc_args
         if self.action_loc_key:
             d['action-loc-key'] = self.action_loc_key
         if self.loc_key:
@@ -135,10 +149,14 @@ class Frame(object):
         self.notification_data.append({'token':token_hex, 'payload':payload, 'identifier':identifier, 'expiry':expiry, "priority":priority})
 
     def get_notifications(self, gateway_connection):
-        notifications = list({'id': x['identifier'], 'message':gateway_connection._get_enhanced_notification(x['token'], x['payload'],x['identifier'], x['expiry'])} for x in self.notification_data)
+        notifications = list({'id': x['identifier'],
+                              'message':gateway_connection._get_enhanced_notification(x['token'],
+                                                                                      x['payload'],
+                                                                                      x['identifier'],
+                                                                                      x['expiry'])}
+                                                                    for x in self.notification_data)
         return notifications
 
     def __str__(self):
         """Get the frame buffer"""
         return str(self.frame_data)
-
