@@ -9,8 +9,8 @@ with open(os.path.join(here, 'README.md')) as f:
 
 requires = []
 
-setup(name='Cockoo',
-      version='0.5.1',
+setup(name='Cuckoo',
+      version='0.5.2',
       description='Cuckoo Apple push notifications server',
       long_description=README,
       classifiers=[
