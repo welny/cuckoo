@@ -247,7 +247,7 @@ class GatewayConnection(Connection):
         """
         form notification data in an enhanced format
         """
-        token = a2b_hex(token_hex)
+        token = a2b_hex(token_hex.encode('utf-8'))
         payload = payload.json()
         fmt = ENHANCED_NOTIFICATION_FORMAT % len(payload)
         notification = pack(fmt, ENHANCED_NOTIFICATION_COMMAND, identifier, expiry,
