@@ -174,7 +174,7 @@ class GCMMessage:
     def send(self, token):
         logger = logging.getLogger('cuckoo')
         url = "https://gcm-http.googleapis.com/gcm/send"
-        data = json.dumps(dict(to=token, payload=self.payload))
+        data = dict(to=token, payload=self.payload.dict())
 
         r = requests.post(url, data=data, headers={'content-type':'application/json', 'authorization':'key='+str(self.apikey)})
 
