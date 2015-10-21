@@ -7,10 +7,10 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.md')) as f:
     README = f.read()
 
-requires = []
+requires = ["requests"]
 
 setup(name='Cuckoo',
-      version='0.5.2',
+      version='0.5.3',
       description='Cuckoo Apple push notifications server',
       long_description=README,
       classifiers=[

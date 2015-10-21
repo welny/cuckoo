@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
+import requests
+import logging
 from binascii import a2b_hex
 
 from cuckoo.model.utils import *
@@ -160,3 +162,25 @@ class Frame(object):
     def __str__(self):
         """Get the frame buffer"""
         return str(self.frame_data)
+
+
+class GCMMessage:
+
+    def __init__(self, apikey, payload):
+
+        self.payload = payload
+        self.apikey = apikey
+
+    def send(self, token):
+        logger = logging.getLogger('cuckoo')
+        url = "https://gcm-http.googleapis.com/gcm/send"
+        data = json.dumps(dict(to=token, payload=self.payload))
+
+        r = requests.post(url, data=data, headers={'content-type':'application/json', 'authorization':'key='+str(self.apikey)})
+
+        if str(r.status_code) != "200":
+            logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
+            return False
+        logger.info("200 OK")
+        return True
+
