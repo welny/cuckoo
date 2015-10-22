@@ -176,7 +176,7 @@ class GCMMessage:
         url = "https://gcm-http.googleapis.com/gcm/send"
         data = dict(to=token, payload=self.payload.dict())
 
-        r = requests.post(url, data=data, headers={'content-type':'application/json', 'authorization':'key='+str(self.apikey)})
+        r = requests.post(url, data=data, headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
 
         if str(r.status_code) != "200":
             logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
