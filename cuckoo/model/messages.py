@@ -175,7 +175,6 @@ class GCMMessage:
         logger = logging.getLogger('cuckoo')
         url = "https://gcm-http.googleapis.com/gcm/send"
         data = dict(registration_ids=[token], data=self.payload.dict())
-        logger.debug("Sending message with payload: {}".format(self.payload.dict()))
         r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
 
         if str(r.status_code) != "200":
