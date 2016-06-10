@@ -80,9 +80,9 @@ class PayloadAlert(object):
         if self.title:
             d['title'] = self.title
         if self.body:
-            d['body'] = self.body
             if len(self.body) > MAX_PAYLOAD_LENGTH / 2:
                 self.body = self.body[:MAX_PAYLOAD_LENGTH / 2]
+            d['body'] = self.body
         if self.title_loc_key:
             d['title-loc-key'] = self.title_loc_key
         if self.title_loc_args:
