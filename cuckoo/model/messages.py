@@ -166,7 +166,7 @@ class Frame(object):
         return str(self.frame_data)
 
 
-class GCMMessage:
+class FCMMessage:
 
     def __init__(self, apikey, payload):
 
@@ -186,7 +186,7 @@ class GCMMessage:
         return True
 
 
-class GCMWebMessage:
+class FCMWebMessage:
 
     def __init__(self, apikey, payload):
 
@@ -204,3 +204,4 @@ class GCMWebMessage:
             return False
         logger.info("200 OK")
         return True
+
