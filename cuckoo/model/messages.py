@@ -195,11 +195,14 @@ class FCMWebMessage:
         logger = logging.getLogger('cuckoo')
         url = "https://fcm.googleapis.com/fcm/send"
         data = dict(registration_ids=[token], data=self.payload.dict())
-        r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
 
-        if str(r.status_code) != "200":
-            logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
-            return False
-        logger.info("200 OK")
+
         return True
 
+
+body = {
+    "to": TOPIC,
+    "message_id": uuid.uuid4().hex,
+    "data": { "msg": "This is the content"}
+}
+message = "<message><gcm xmlns='google:mobile:data'>"+json.dumps(body)+"</gcm></message>"

@@ -11,6 +11,10 @@ from socket import (
 from socket import error as socket_error
 import sys, ssl, select, time, collections, itertools
 import threading
+import json
+import uuid
+
+from sleekxmpp.clientxmpp import ClientXMPP
 
 try:
     from ssl import wrap_socket, SSLError
@@ -46,6 +50,102 @@ WAIT_READ_TIMEOUT_SEC = 10
 WRITE_RETRY = 3
 
 provider_log = logging.getLogger("cuckoo")
+
+
+class FCM_Service(ClientXMPP):
+
+    def __init__(self, sender_id, server_key, sandbox=False):
+
+        fcm_server_url= "fcm-xmpp.googleapis.com"
+        fcm_server_port = 5236 if sandbox else 5235
+        fcm_jid = sender_id + "@gcm.googleapis.com"
+        fcm_server_ip = socket.gethostbyname(fcm_server_url)
+
+        ClientXMPP.__init__(self, fcm_jid, server_key, sasl_mech="PLAIN")
+        # self.add_event_handler("session_start", self.start)
+        self.auto_reconnect = False
+        self.connect((fcm_server_ip, fcm_server_port), use_tls = True, use_ssl = True, reattempt = False)
+        self.process(block=False)
+
+    def start(self, event, message):
+        self.send_raw(message)
+        self.disconnect(wait=True)
+
+
+class FCM_Connection(object):
+    """
+    A generic connection class for communicating with the APNs
+    """
+    def __init__(self, cert_file=None, key_file=None, timeout=None):
+        self.timeout = timeout
+        self._socket = None
+        self._ssl = None
+        self.connection_alive = False
+
+    def __del__(self):
+        self._disconnect()
+
+    def _connect(self):
+        # Establish an SSL connection
+        provider_log.debug("FCM connection establishing...")
+
+        # Fallback for socket timeout.
+        for i in range(3):
+            try:
+                self._socket = socket(AF_INET, SOCK_STREAM)
+                self._socket.settimeout(self.timeout)
+                self._socket.connect((self.server, self.port))
+                break
+            except timeout:
+                pass
+            except:
+                raise
+
+        self._last_activity_time = time.time()
+        self._socket.setblocking(False)
+        self._ssl = wrap_socket(self._socket, self.key_file, self.cert_file,
+                                    do_handshake_on_connect=False)
+        while True:
+            try:
+                self._ssl.do_handshake()
+                break
+            except ssl.SSLError as err:
+                if ssl.SSL_ERROR_WANT_READ == err.args[0]:
+                    select.select([self._ssl], [], [])
+                elif ssl.SSL_ERROR_WANT_WRITE == err.args[0]:
+                    select.select([], [self._ssl], [])
+                else:
+                    raise
+
+        self.connection_alive = True
+        provider_log.debug("APNS connection established")
+
+    def _disconnect(self):
+        if self.connection_alive:
+            if self._socket:
+                self._socket.close()
+            if self._ssl:
+                self._ssl.close()
+            self.connection_alive = False
+
+    def _connection(self):
+        if not self._ssl or not self.connection_alive:
+            self._connect()
+        return self._ssl
+
+    def read(self, n=None):
+        return self._connection().read(n)
+
+    def write(self, string):
+        self._last_activity_time = time.time()
+        _, wlist, _ = select.select([], [self._connection()], [], WAIT_WRITE_TIMEOUT_SEC)
+
+        if len(wlist) > 0:
+            length = self._connection().sendall(string)
+            if length == 0:
+                provider_log.debug("sent length: %d" % length)  # DEBUG
+        else:
+            provider_log.warning("write socket descriptor is not ready after " + str(WAIT_WRITE_TIMEOUT_SEC))
 
 
 class APNService:
