@@ -6,7 +6,7 @@ from binascii import a2b_hex
 
 from cuckoo.model.utils import *
 
-MAX_PAYLOAD_LENGTH = 2048
+MAX_PAYLOAD_LENGTH = 4096
 
 
 class Payload(object):
@@ -80,8 +80,6 @@ class PayloadAlert(object):
         if self.title:
             d['title'] = self.title
         if self.body:
-            if len(self.body) > MAX_PAYLOAD_LENGTH / 2:
-                self.body = self.body[:MAX_PAYLOAD_LENGTH / 2]
             d['body'] = self.body
         if self.title_loc_key:
             d['title-loc-key'] = self.title_loc_key
@@ -166,7 +164,7 @@ class Frame(object):
         return str(self.frame_data)
 
 
-class GCMMessage:
+class FCMMessage:
 
     def __init__(self, apikey, payload):
 
@@ -186,7 +184,7 @@ class GCMMessage:
         return True
 
 
-class GCMWebMessage:
+class FCMWebMessage:
 
     def __init__(self, apikey, payload):
 
@@ -204,3 +202,4 @@ class GCMWebMessage:
             return False
         logger.info("200 OK")
         return True
+
