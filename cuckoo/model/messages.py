@@ -6,7 +6,7 @@ from binascii import a2b_hex
 
 from cuckoo.model.utils import *
 
-MAX_PAYLOAD_LENGTH = 2048
+MAX_PAYLOAD_LENGTH = 4096
 
 
 class Payload(object):
