@@ -10,7 +10,7 @@ with open(os.path.join(here, 'README.md')) as f:
 requires = ["requests", "sleekxmpp"]
 
 setup(name='Cuckoo',
-      version='0.7.0',
+      version='0.8.0',
       description='Cuckoo Apple and FCM push notifications server',
       long_description=README,
       classifiers=[

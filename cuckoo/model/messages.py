@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-import requests
 import logging
 from binascii import a2b_hex
 
@@ -166,43 +165,152 @@ class Frame(object):
 
 class FCMMessage:
 
-    def __init__(self, apikey, payload):
+    def __init__(self, registration_token: str, data: dict, identifier: str):
 
-        self.payload = payload
-        self.apikey = apikey
-
-    def send(self, token):
         logger = logging.getLogger('cuckoo')
-        url = "https://fcm.googleapis.com/fcm/send"
-        data = dict(registration_ids=[token], data=self.payload.dict())
-        r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
+        self.registration_token = registration_token
+        self.data = data
+        self.identifier = identifier
 
-        if str(r.status_code) != "200":
-            logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
-            return False
-        logger.info("200 OK")
-        return True
-
-
-class FCMWebMessage:
-
-    def __init__(self, apikey, payload):
-
-        self.payload = payload
-        self.apikey = apikey
-
-    def send(self, token):
-        logger = logging.getLogger('cuckoo')
-        url = "https://fcm.googleapis.com/fcm/send"
-        data = dict(registration_ids=[token], data=self.payload.dict())
+        body = {
+            "to": registration_token,  # to to też topic  "/topics/foo-bar"
+            # "condition": "'dogs' in topics || 'cats' in topics"
+            "message_id": identifier,  # required if message with payload
+            "notification": {  # jeśli to jest notification message
+                "title": "ttye",
+                "text": "texts",
+            },
+            "time_to_live": "600",
+            "delivery_receipt_requested": True,
+            "data": self.data
+        }
+        self.raw_message = "<message><gcm xmlns='google:mobile:data'>" + json.dumps(body) + "</gcm></message>"
 
 
-        return True
+"""
+The body of the <message> must be:
+
+<gcm xmlns:google:mobile:data>
+    JSON payload
+</gcm>
+
+Odpowiedź ACK
+<message id="">
+  <gcm xmlns="google:mobile:data">
+  {
+      "from":"REGID",
+      "message_id":"m-1366082849205"
+      "message_type":"ack"
+  }
+  </gcm>
+</message>
+
+Odpowiedź NACK:
+Bad registration:
+<message>
+  <gcm xmlns="google:mobile:data">
+  {
+    "message_type":"nack",
+    "message_id":"msgId1",
+    "from":"SomeInvalidRegistrationId",
+    "error":"BAD_REGISTRATION",
+    "error_description":"Invalid token on 'to' field: SomeInvalidRegistrationId"
+  }
+  </gcm>
+</message>
+
+Invalid JSON:
+<message>
+ <gcm xmlns="google:mobile:data">
+ {
+   "message_type":"nack",
+   "message_id":"msgId1",
+   "from":"bk3RNwTe3H0:CI2k_HHwgIpoDKCIZvvDMExUdFQ3P1...",
+   "error":"INVALID_JSON",
+   "error_description":"InvalidJson: JSON_TYPE_ERROR : Field \"time_to_live\" must be a JSON java.lang.Number: abc"
+ }
+ </gcm>
+</message>
+
+Device Message Rate Exceeded:
+<message id="...">
+  <gcm xmlns="google:mobile:data">
+  {
+    "message_type":"nack",
+    "message_id":"msgId1",
+    "from":"REGID",
+    "error":"DEVICE_MESSAGE_RATE_EXCEEDED",
+    "error_description":"Downstream message rate exceeded for this registration id"
+  }
+  </gcm>
+</message>
+
+Stanza error:
+<message id="3" type="error" to="123456789@gcm.googleapis.com/ABC">
+  <gcm xmlns="google:mobile:data">
+     {"random": "text"}
+  </gcm>
+  <error code="400" type="modify">
+    <bad-request xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"/>
+    <text xmlns="urn:ietf:params:xml:ns:xmpp-stanzas">
+      InvalidJson: JSON_PARSING_ERROR : Missing Required Field: message_id\n
+    </text>
+  </error>
+</message>
+
+control message
+<message>
+  <data:gcm xmlns:data="google:mobile:data">
+  {
+    "message_type":"control"
+    "control_type":"CONNECTION_DRAINING"
+  }
+  </data:gcm>
+</message>
+
+Delivery receipt:
+<message id="">
+  <gcm xmlns="google:mobile:data">
+  {
+      "category":"com.example.yourapp", // to know which app sent it
+      "data":
+      {
+         “message_status":"MESSAGE_SENT_TO_DEVICE",
+         “original_message_id”:”m-1366082849205”
+         “device_registration_id”: “REGISTRATION_ID”
+      },
+      "message_id":"dr2:m-1366082849205",
+      "message_type":"receipt",
+      "from":"gcm.googleapis.com"
+  }
+  </gcm>
+</message>
 
 
-body = {
-    "to": TOPIC,
-    "message_id": uuid.uuid4().hex,
-    "data": { "msg": "This is the content"}
-}
-message = "<message><gcm xmlns='google:mobile:data'>"+json.dumps(body)+"</gcm></message>"
+Upstream:
+<message id="">
+  <gcm xmlns="google:mobile:data">
+  {
+      "category":"com.example.yourapp", // to know which app sent it
+      "data":
+      {
+          "hello":"world",
+      },
+      "message_id":"m-123",
+      "from":"REGID"
+  }
+  </gcm>
+</message>
+
+Sending ACK:
+<message id="">
+  <gcm xmlns="google:mobile:data">
+  {
+      "to":"REGID",
+      "message_id":"m-123"
+      "message_type":"ack"
+  }
+  </gcm>
+</message>
+
+"""

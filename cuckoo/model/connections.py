@@ -22,6 +22,7 @@ except ImportError:
     from socket import ssl as wrap_socket, sslerror as SSLError
 
 from cuckoo.model.utils import *
+from cuckoo.model.messages import FCMMessage
 
 ENHANCED_NOTIFICATION_COMMAND = 1
 ENHANCED_NOTIFICATION_FORMAT = (
@@ -52,7 +53,7 @@ WRITE_RETRY = 3
 provider_log = logging.getLogger("cuckoo")
 
 
-class FCM_Service(ClientXMPP):
+class FCMService(ClientXMPP):
 
     def __init__(self, sender_id, server_key, sandbox=False):
 
@@ -62,17 +63,27 @@ class FCM_Service(ClientXMPP):
         fcm_server_ip = socket.gethostbyname(fcm_server_url)
 
         ClientXMPP.__init__(self, fcm_jid, server_key, sasl_mech="PLAIN")
-        # self.add_event_handler("session_start", self.start)
-        self.auto_reconnect = False
+        self.auto_reconnect = True
         self.connect((fcm_server_ip, fcm_server_port), use_tls = True, use_ssl = True, reattempt = False)
         self.process(block=False)
 
-    def start(self, event, message):
-        self.send_raw(message)
-        self.disconnect(wait=True)
+    def add_session_start_handler(self, handler):
+        self.add_event_handler("session_start", handler)
+
+    def add_message_handler(self, handler):
+        # handler otrzymanej wiadomości
+        self.add_event_handler("message", handler)
+
+    def add_disconnected_handler(self, handler):
+        self.add_event_handler("disconnected", handler)
+
+    def send_FCMMessage(self, message: FCMMessage):
+        # wysyłamy wiadomość z użyciem kolejki
+        self.send_raw(message.raw_message)
 
 
-class FCM_Connection(object):
+
+class FCMConnection(object):
     """
     A generic connection class for communicating with the APNs
     """
