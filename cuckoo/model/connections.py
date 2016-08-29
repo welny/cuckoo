@@ -6,7 +6,8 @@ from socket import (
     socket,
     timeout,
     AF_INET,
-    SOCK_STREAM
+    SOCK_STREAM,
+    gethostbyname
 )
 from socket import error as socket_error
 import sys, ssl, select, time, collections, itertools
@@ -60,6 +61,7 @@ class FCMService(ClientXMPP):
         fcm_server_url= "fcm-xmpp.googleapis.com"
         fcm_server_port = 5236 if sandbox else 5235
         fcm_jid = sender_id + "@gcm.googleapis.com"
+
         fcm_server_ip = socket.gethostbyname(fcm_server_url)
 
         ClientXMPP.__init__(self, fcm_jid, server_key, sasl_mech="PLAIN")
