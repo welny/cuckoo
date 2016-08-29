@@ -179,8 +179,6 @@ class FCMNotification:
             d = {}
             if self.title:
                 d['title'] = self.title
-            if self.category:
-                d['category'] = self.category
             if self.text:
                 d['body'] = self.body
             if self.tag:
