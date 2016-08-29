@@ -163,11 +163,36 @@ class Frame(object):
         return str(self.frame_data)
 
 
+class FCMMessageType:
+    notification = "notification"
+    data = "data"
+
+
+class FCMNotification:
+
+    def __init__(self, title, body, tag=None):
+        self.title = title
+        self.body = body
+
+        def dict(self):
+            """Returns the notification as a regular Python dictionary"""
+            d = {}
+            if self.title:
+                d['title'] = self.title
+            if self.category:
+                d['category'] = self.category
+            if self.text:
+                d['body'] = self.body
+            if self.tag:
+                d['tag'] = self.tag
+            return d
+
+
 class FCMMessage:
 
-    def __init__(self, registration_token: str, data: dict, identifier: str):
+    def __init__(self, type: FCMMessageType, registration_token: str, identifier: str, notification: FCMNotification=None, data: dict=None):
 
-        logger = logging.getLogger('cuckoo')
+        self.type = type
         self.registration_token = registration_token
         self.data = data
         self.identifier = identifier
@@ -176,14 +201,14 @@ class FCMMessage:
             "to": registration_token,  # to to też topic  "/topics/foo-bar"
             # "condition": "'dogs' in topics || 'cats' in topics"
             "message_id": identifier,  # required if message with payload
-            "notification": {  # jeśli to jest notification message
-                "title": "ttye",
-                "text": "texts",
-            },
-            "time_to_live": "600",
             "delivery_receipt_requested": True,
-            "data": self.data
+            "dry_run": True  # testing
         }
+        if type == FCMMessageType.notification:
+            body["notification"] = notification.dict()
+        if data is not None:
+            body["data"] = data
+
         self.raw_message = "<message><gcm xmlns='google:mobile:data'>" + json.dumps(body) + "</gcm></message>"
 
 
