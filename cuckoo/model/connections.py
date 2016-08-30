@@ -66,7 +66,9 @@ class FCMService(ClientXMPP):
 
         ClientXMPP.__init__(self, fcm_jid, server_key, sasl_mech="PLAIN")
         self.auto_reconnect = True
-        self.connect((fcm_server_ip, fcm_server_port), use_tls = True, use_ssl = True, reattempt = False)
+        result = self.connect((fcm_server_ip, fcm_server_port), use_tls = True, use_ssl = True, reattempt = False)
+        provider_log.info("Connection result: " + str(result))
+
         self.process(block=False)
 
     def add_session_start_handler(self, handler):
