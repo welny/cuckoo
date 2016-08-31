@@ -15,15 +15,12 @@ import threading
 import json
 import uuid
 
-from sleekxmpp.clientxmpp import ClientXMPP
-
 try:
     from ssl import wrap_socket, SSLError
 except ImportError:
     from socket import ssl as wrap_socket, sslerror as SSLError
 
 from cuckoo.model.utils import *
-from cuckoo.model.messages import FCMMessage
 
 ENHANCED_NOTIFICATION_COMMAND = 1
 ENHANCED_NOTIFICATION_FORMAT = (
@@ -52,39 +49,6 @@ WAIT_READ_TIMEOUT_SEC = 10
 WRITE_RETRY = 3
 
 provider_log = logging.getLogger("cuckoo")
-
-
-class FCMService(ClientXMPP):
-
-    def __init__(self, sender_id, server_key, sandbox=False):
-
-        fcm_server_url= "fcm-xmpp.googleapis.com"
-        fcm_server_port = 5236 if sandbox else 5235
-        fcm_jid = sender_id + "@gcm.googleapis.com"
-
-        fcm_server_ip = gethostbyname(fcm_server_url)
-
-        ClientXMPP.__init__(self, fcm_jid, server_key, sasl_mech="PLAIN")
-        self.auto_reconnect = True
-        result = self.connect((fcm_server_ip, fcm_server_port), use_tls = True, use_ssl = True, reattempt = False)
-        provider_log.info("Connection result: " + str(result))
-
-        self.process(block=False)
-
-    def add_session_start_handler(self, handler):
-        self.add_event_handler("session_start", handler)
-
-    def add_message_handler(self, handler):
-        # handler otrzymanej wiadomości
-        self.add_event_handler("message", handler)
-
-    def add_disconnected_handler(self, handler):
-        self.add_event_handler("disconnected", handler)
-
-    def send_FCMMessage(self, message: FCMMessage):
-        # wysyłamy wiadomość z użyciem kolejki
-        self.send_raw(message.raw_message)
-
 
 
 class FCMConnection(object):

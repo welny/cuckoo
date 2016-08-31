@@ -7,7 +7,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.md')) as f:
     README = f.read()
 
-requires = ["requests", "sleekxmpp"]
+requires = ["requests"]
 
 setup(name='Cuckoo',
       version='0.8.0',
