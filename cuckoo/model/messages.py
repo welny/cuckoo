@@ -166,41 +166,41 @@ class Frame(object):
 
 class FCMMessage:
 
-     def __init__(self, apikey, payload):
+    def __init__(self, apikey, payload):
 
-         self.payload = payload
-         self.apikey = apikey
+        self.payload = payload
+        self.apikey = apikey
 
-     def send(self, token):
-         logger = logging.getLogger('cuckoo')
-         url = "https://fcm.googleapis.com/fcm/send"
-         data = dict(registration_ids=[token], data=self.payload.dict())
-         r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
+    def send(self, token):
+        logger = logging.getLogger('cuckoo')
+        url = "https://fcm.googleapis.com/fcm/send"
+        data = dict(to=token, data=self.payload.dict())
+        r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
 
-         if str(r.status_code) != "200":
-             logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
-             return False
-         else:
-             logger.info("200 OK")
-             return True
+        if str(r.status_code) != "200":
+            logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
+            return False
+        else:
+            logger.info("200 OK")
+            return True
 
 
 class FCMWebMessage:
 
-     def __init__(self, apikey, payload):
+    def __init__(self, apikey, payload):
 
-         self.payload = payload
-         self.apikey = apikey
+        self.payload = payload
+        self.apikey = apikey
 
-     def send(self, token):
-         logger = logging.getLogger('cuckoo')
-         url = "https://fcm.googleapis.com/fcm/send"
-         data = dict(registration_ids=[token], data=self.payload.dict())
-         r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
+    def send(self, token):
+        logger = logging.getLogger('cuckoo')
+        url = "https://fcm.googleapis.com/fcm/send"
+        data = dict(to=token, data=self.payload.dict())
+        r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
 
-         if str(r.status_code) != "200":
-             logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
-             return False
-         else:
-             logger.info("200 OK")
-             return True
+    if str(r.status_code) != "200":
+        logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
+        return False
+    else:
+        logger.info("200 OK")
+        return True
