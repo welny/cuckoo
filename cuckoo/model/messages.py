@@ -180,8 +180,9 @@ class FCMMessage:
          if str(r.status_code) != "200":
              logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
              return False
-         logger.info("200 OK")
-         return True
+         else:
+             logger.info("200 OK")
+             return True
 
 
 class FCMWebMessage:
@@ -200,5 +201,6 @@ class FCMWebMessage:
          if str(r.status_code) != "200":
              logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
              return False
-         logger.info("200 OK")
-        return True
+         else:
+             logger.info("200 OK")
+             return True
