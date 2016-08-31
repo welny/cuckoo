@@ -63,17 +63,20 @@ class Payload(object):
 
 
 class PayloadAlert(object):
-    def __init__(self, title=None, body=None, title_loc_key=None, title_loc_args=None, action_loc_key=None,
-                 loc_key=None, loc_args=None, launch_image=None):
+    def __init__(self, title=None, body=None, title_loc_key=None, title_loc_args=None, click_action=None,
+                 body_loc_key=None, body_loc_args=None, tag=None, icon=None, sound=None, color=None):
         super(PayloadAlert, self).__init__()
         self.title = title
         self.body = body
+        self.tag = tag
+        self.icon = icon
+        self.sound = sound
+        self.color = color
         self.title_loc_key = title_loc_key
         self.title_loc_args = title_loc_args
-        self.action_loc_key = action_loc_key
-        self.loc_key = loc_key
-        self.loc_args = loc_args
-        self.launch_image = launch_image
+        self.body_loc_key = body_loc_key
+        self.body_loc_args = body_loc_args
+        self.click_action = click_action
 
     def dict(self):
         d = {}
@@ -81,18 +84,24 @@ class PayloadAlert(object):
             d['title'] = self.title
         if self.body:
             d['body'] = self.body
+        if self.tag:
+            d['tag'] = self.tag
+        if self.icon:
+            d['icon'] = self.icon
+        if self.sound:
+            d['sound'] = self.sound
+        if self.color:
+            d['color'] = self.color
         if self.title_loc_key:
             d['title-loc-key'] = self.title_loc_key
         if self.title_loc_args:
             d['title-loc-args'] = self.title_loc_args
-        if self.action_loc_key:
-            d['action-loc-key'] = self.action_loc_key
-        if self.loc_key:
-            d['loc-key'] = self.loc_key
-        if self.loc_args:
-            d['loc-args'] = self.loc_args
-        if self.launch_image:
-            d['launch-image'] = self.launch_image
+        if self.click_action:
+            d['click-action'] = self.click_action
+        if self.body_loc_key:
+            d['body-loc-key'] = self.body_loc_key
+        if self.body_loc_args:
+            d['body-loc-args'] = self.body_loc_args
         return d
 
 
@@ -166,9 +175,42 @@ class Frame(object):
 
 class FCMMessage:
 
+    def __init__(self, apikey, payload, collapse_key=None):
+
+        self.apikey = apikey
+        self.payload = payload
+        if self.payload.alert is not None:
+            self.notification = self.payload.alert
+        else:
+            self.notification = None
+        if collapse_key is not None:
+            self.collapse_key = collapse_key
+
+
+    def send(self, token):
+        logger = logging.getLogger('cuckoo')
+        url = "https://fcm.googleapis.com/fcm/send"
+        data = dict(to=token, data=self.payload.dict())
+        if self.notification is not None:
+            data["notification"] = self.notification
+        if self.collapse_key is not None:
+            data['collapse_key'] = self.collapse_key
+
+        r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
+        logger.debug("Trying to send notification: " + json.dumps(data))
+        if str(r.status_code) != "200":
+            logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
+            return False
+        else:
+            logger.info("200 OK")
+            logger.debug(str(r.json()))
+            return True
+
+
+class FCMWebMessage:
+
     def __init__(self, apikey, payload):
 
-        self.payload = payload
         self.apikey = apikey
 
     def send(self, token):
@@ -183,24 +225,3 @@ class FCMMessage:
         else:
             logger.info("200 OK")
             return True
-
-
-class FCMWebMessage:
-
-    def __init__(self, apikey, payload):
-
-        self.payload = payload
-        self.apikey = apikey
-
-    def send(self, token):
-        logger = logging.getLogger('cuckoo')
-        url = "https://fcm.googleapis.com/fcm/send"
-        data = dict(to=token, data=self.payload.dict())
-        r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
-
-    if str(r.status_code) != "200":
-        logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
-        return False
-    else:
-        logger.info("200 OK")
-        return True
