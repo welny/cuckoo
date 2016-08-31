@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import logging
+import requests
 from binascii import a2b_hex
 
 from cuckoo.model.utils import *
@@ -162,3 +163,42 @@ class Frame(object):
         """Get the frame buffer"""
         return str(self.frame_data)
 
+
+class FCMMessage:
+
+     def __init__(self, apikey, payload):
+
+         self.payload = payload
+         self.apikey = apikey
+
+     def send(self, token):
+         logger = logging.getLogger('cuckoo')
+         url = "https://fcm.googleapis.com/fcm/send"
+         data = dict(registration_ids=[token], data=self.payload.dict())
+         r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
+
+         if str(r.status_code) != "200":
+             logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
+             return False
+         logger.info("200 OK")
+         return True
+
+
+class FCMWebMessage:
+
+     def __init__(self, apikey, payload):
+
+         self.payload = payload
+         self.apikey = apikey
+
+     def send(self, token):
+         logger = logging.getLogger('cuckoo')
+         url = "https://fcm.googleapis.com/fcm/send"
+         data = dict(registration_ids=[token], data=self.payload.dict())
+         r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
+
+         if str(r.status_code) != "200":
+             logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
+             return False
+         logger.info("200 OK")
+        return True
