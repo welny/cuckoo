@@ -191,9 +191,11 @@ class FCMMessage:
     def send(self, token):
         logger = logging.getLogger('cuckoo')
         url = "https://fcm.googleapis.com/fcm/send"
-        data = dict(to=token, data=self.payload.dict())
+        data = {}
         if self.notification is not None:
-            data["notification"] = self.notification
+            data["notification"] = self.notification.dict()
+        if self.data is not None:
+            data["data"] = self.data
         if self.collapse_key is not None:
             data['collapse_key'] = self.collapse_key
 
