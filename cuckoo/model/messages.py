@@ -198,6 +198,7 @@ class FCMMessage:
             data["data"] = self.data
         if self.collapse_key is not None:
             data['collapse_key'] = self.collapse_key
+        data['to'] = token
 
         r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
         logger.debug("Trying to send notification: " + json.dumps(data))
@@ -210,7 +211,7 @@ class FCMMessage:
             return True
 
 
-class FCMWebMessage:
+class WebMessage:
 
     def __init__(self, apikey, payload):
 

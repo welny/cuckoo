@@ -7,13 +7,10 @@ from socket import (
     timeout,
     AF_INET,
     SOCK_STREAM,
-    gethostbyname
 )
 from socket import error as socket_error
-import sys, ssl, select, time, collections, itertools
+import ssl, select, time, collections, itertools
 import threading
-import json
-import uuid
 
 try:
     from ssl import wrap_socket, SSLError
