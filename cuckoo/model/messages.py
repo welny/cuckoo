@@ -181,12 +181,13 @@ class Frame(object):
 
 class FCMMessage:
 
-    def __init__(self, apikey, notification=None, data=None, collapse_key=None):
+    def __init__(self, apikey, notification=None, data=None, collapse_key=None, time_to_live=0):
 
         self.apikey = apikey
         self.notification = notification
         self.data = data
         self.collapse_key = collapse_key
+        self.time_to_live = time_to_live
 
     def send(self, token):
         logger = logging.getLogger('cuckoo')
