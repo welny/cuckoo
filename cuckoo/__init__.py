@@ -1,2 +1,2 @@
 from cuckoo.model.connections import APNService
-from cuckoo.model.messages import Payload, PayloadAlert, Frame, FCMMessage, FCMWebMessage
+from cuckoo.model.messages import DataPayload, NotificationPayload, Frame, FCMMessage

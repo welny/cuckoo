@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
-import requests
 import logging
+import requests
 from binascii import a2b_hex
 
 from cuckoo.model.utils import *
@@ -9,10 +9,10 @@ from cuckoo.model.utils import *
 MAX_PAYLOAD_LENGTH = 4096
 
 
-class Payload(object):
+class DataPayload(object):
     """A class representing an APNs message payload"""
     def __init__(self, alert=None, badge=None, sound=None, category=None, custom=None, content_available=False):
-        super(Payload, self).__init__()
+        super(DataPayload, self).__init__()
         self.alert = alert
         self.badge = badge
         self.sound = sound
@@ -30,7 +30,7 @@ class Payload(object):
         if self.alert:
             # Alert can be either a string or a PayloadAlert
             # object
-            if isinstance(self.alert, PayloadAlert):
+            if isinstance(self.alert, NotificationPayload):
                 d['alert'] = self.alert.dict()
             else:
                 d['alert'] = self.alert
@@ -62,18 +62,23 @@ class Payload(object):
         return "%s(%s)" % (self.__class__.__name__, args)
 
 
-class PayloadAlert(object):
-    def __init__(self, title=None, body=None, title_loc_key=None, title_loc_args=None, action_loc_key=None,
-                 loc_key=None, loc_args=None, launch_image=None):
-        super(PayloadAlert, self).__init__()
+class NotificationPayload(object):
+    def __init__(self, title=None, body=None, title_loc_key=None, title_loc_args=None, click_action=None, action_loc_key=None,
+                 body_loc_key=None, body_loc_args=None, tag=None, icon=None, launch_image=None, sound=None, color=None):
+        super(NotificationPayload, self).__init__()
         self.title = title
         self.body = body
+        self.tag = tag
+        self.icon = icon
+        self.launch_image = launch_image
+        self.sound = sound
+        self.color = color
         self.title_loc_key = title_loc_key
         self.title_loc_args = title_loc_args
+        self.body_loc_key = body_loc_key
+        self.body_loc_args = body_loc_args
         self.action_loc_key = action_loc_key
-        self.loc_key = loc_key
-        self.loc_args = loc_args
-        self.launch_image = launch_image
+        self.click_action = click_action
 
     def dict(self):
         d = {}
@@ -81,18 +86,28 @@ class PayloadAlert(object):
             d['title'] = self.title
         if self.body:
             d['body'] = self.body
+        if self.tag:
+            d['tag'] = self.tag
+        if self.icon:
+            d['icon'] = self.icon
+        if self.launch_image:
+            d['launch-image'] = self.launch_image
+        if self.sound:
+            d['sound'] = self.sound
+        if self.color:
+            d['color'] = self.color
         if self.title_loc_key:
             d['title-loc-key'] = self.title_loc_key
         if self.title_loc_args:
             d['title-loc-args'] = self.title_loc_args
+        if self.click_action:
+            d['click-action'] = self.click_action
         if self.action_loc_key:
             d['action-loc-key'] = self.action_loc_key
-        if self.loc_key:
-            d['loc-key'] = self.loc_key
-        if self.loc_args:
-            d['loc-args'] = self.loc_args
-        if self.launch_image:
-            d['launch-image'] = self.launch_image
+        if self.body_loc_key:
+            d['body-loc-key'] = self.body_loc_key
+        if self.body_loc_args:
+            d['body-loc-args'] = self.body_loc_args
         return d
 
 
@@ -166,40 +181,52 @@ class Frame(object):
 
 class FCMMessage:
 
+    def __init__(self, apikey, notification=None, data=None, collapse_key=None, time_to_live=86400):
+
+        self.apikey = apikey
+        self.notification = notification
+        self.data = data
+        self.collapse_key = collapse_key
+        self.time_to_live = time_to_live
+
+    def send(self, token):
+        logger = logging.getLogger('cuckoo')
+        url = "https://fcm.googleapis.com/fcm/send"
+        data = {}
+        if self.notification is not None:
+            data["notification"] = self.notification.dict()
+        if self.data is not None:
+            data["data"] = self.data
+        if self.collapse_key is not None:
+            data['collapse_key'] = self.collapse_key
+        data['to'] = token
+
+        r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
+        logger.debug("Trying to send notification: " + json.dumps(data))
+        if str(r.status_code) != "200":
+            logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
+            return False
+        else:
+            logger.info("200 OK")
+            logger.debug(str(r.json()))
+            return True
+
+
+class WebMessage:
+
     def __init__(self, apikey, payload):
 
-        self.payload = payload
         self.apikey = apikey
 
     def send(self, token):
         logger = logging.getLogger('cuckoo')
         url = "https://fcm.googleapis.com/fcm/send"
-        data = dict(registration_ids=[token], data=self.payload.dict())
+        data = dict(to=token, data=self.payload.dict())
         r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
 
         if str(r.status_code) != "200":
             logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
             return False
-        logger.info("200 OK")
-        return True
-
-
-class FCMWebMessage:
-
-    def __init__(self, apikey, payload):
-
-        self.payload = payload
-        self.apikey = apikey
-
-    def send(self, token):
-        logger = logging.getLogger('cuckoo')
-        url = "https://fcm.googleapis.com/fcm/send"
-        data = dict(registration_ids=[token], data=self.payload.dict())
-        r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
-
-        if str(r.status_code) != "200":
-            logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
-            return False
-        logger.info("200 OK")
-        return True
-
+        else:
+            logger.info("200 OK")
+            return True

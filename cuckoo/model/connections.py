@@ -9,7 +9,7 @@ from socket import (
     SOCK_STREAM
 )
 from socket import error as socket_error
-import sys, ssl, select, time, collections, itertools
+import ssl, select, time, collections, itertools
 import threading
 
 try:
