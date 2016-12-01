@@ -181,7 +181,7 @@ class Frame(object):
 
 class FCMMessage:
 
-    def __init__(self, apikey, notification=None, data=None, collapse_key=None, time_to_live=0):
+    def __init__(self, apikey, notification=None, data=None, collapse_key=None, time_to_live=86400):
 
         self.apikey = apikey
         self.notification = notification

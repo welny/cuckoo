@@ -6,7 +6,7 @@ from socket import (
     socket,
     timeout,
     AF_INET,
-    SOCK_STREAM,
+    SOCK_STREAM
 )
 from socket import error as socket_error
 import ssl, select, time, collections, itertools
