@@ -10,7 +10,7 @@ with open(os.path.join(here, 'README.md')) as f:
 requires = ["requests"]
 
 setup(name='Cuckoo',
-      version='0.8.1',
+      version='0.8.2',
       description='Cuckoo Apple and FCM push notifications server',
       long_description=README,
       classifiers=[

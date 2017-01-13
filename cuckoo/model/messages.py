@@ -181,13 +181,14 @@ class Frame(object):
 
 class FCMMessage:
 
-    def __init__(self, apikey, notification=None, data=None, collapse_key=None, time_to_live=86400):
+    def __init__(self, apikey, notification=None, data=None, collapse_key=None, time_to_live=86400, priority="high"):
 
         self.apikey = apikey
         self.notification = notification
         self.data = data
         self.collapse_key = collapse_key
         self.time_to_live = time_to_live
+        self.priority = priority
 
     def send(self, token):
         logger = logging.getLogger('cuckoo')
@@ -199,10 +200,13 @@ class FCMMessage:
             data["data"] = self.data
         if self.collapse_key is not None:
             data['collapse_key'] = self.collapse_key
+        if self.priority is not None:
+            data["priority"] = self.priority
         data['to'] = token
 
-        r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
         logger.debug("Trying to send notification: " + json.dumps(data))
+        r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
+
         if str(r.status_code) != "200":
             logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
             return False
