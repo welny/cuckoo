@@ -212,8 +212,8 @@ class FCMMessage:
             return False
         else:
             response = r.json()
-            logger.info(response)
             logger.debug(response)
+            logger.debug("Response status 200 - OK")
             return True
 
 
