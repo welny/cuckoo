@@ -192,7 +192,7 @@ class FCMMessage:
 
     def send(self, token):
         logger = logging.getLogger('cuckoo')
-        url = "https://fcm.googleapis.com/fcm/send"
+        url = "http://fcm.googleapis.com/fcm/send"
         data = {}
         if self.notification is not None:
             data["notification"] = self.notification.dict()
