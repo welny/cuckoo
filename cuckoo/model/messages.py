@@ -211,8 +211,9 @@ class FCMMessage:
             logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
             return False
         else:
-            logger.info("200 OK")
-            logger.debug(str(r.json()))
+            response = r.json()
+            logger.info(response)
+            logger.debug(response)
             return True
 
 
