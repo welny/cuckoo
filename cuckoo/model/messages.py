@@ -190,7 +190,12 @@ class FCMMessage:
         self.time_to_live = time_to_live
         self.priority = priority
 
-    def send(self, token):
+    def send(self, to):
+        '''
+
+        :param to: token lub topic
+        :return:
+        '''
         logger = logging.getLogger('cuckoo')
         url = "https://fcm.googleapis.com/fcm/send"
         data = {}
@@ -202,13 +207,13 @@ class FCMMessage:
             data['collapse_key'] = self.collapse_key
         if self.priority is not None:
             data["priority"] = self.priority
-        data['to'] = token
+        data['to'] = to
 
         logger.debug("Trying to send notification: " + json.dumps(data))
         r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
 
         if str(r.status_code) != "200":
-            logger.warning("{} error while trying to send message to {} .".format(r.status_code, token))
+            logger.warning("{} error while trying to send message to {} .".format(r.status_code, to))
             return False
         else:
             response = r.json()
