@@ -183,6 +183,19 @@ class FCMMessage:
         logger.info("200 OK")
         return True
 
+    def send_to_topic(self, topic):
+        logger = logging.getLogger('cuckoo')
+        url = "https://fcm.googleapis.com/fcm/send"
+        data = dict(to=topic, data=self.payload.dict())
+        r = requests.post(url, data=json.dumps(data), headers={'Content-Type':'application/json', 'Authorization':'key='+str(self.apikey)})
+
+        if str(r.status_code) != "200":
+            logger.warning("{} error while trying to send message to topic {} .".format(r.status_code, topic))
+            return False
+        logger.info("200 OK")
+        return True
+
+
 
 class FCMWebMessage:
 
