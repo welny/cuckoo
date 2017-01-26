@@ -7,10 +7,10 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.md')) as f:
     README = f.read()
 
-requires = ["requests", "sleekxmpp"]
+requires = ["requests"]
 
 setup(name='Cuckoo',
-      version='0.7.0',
+      version='0.8.5',
       description='Cuckoo Apple and FCM push notifications server',
       long_description=README,
       classifiers=[
