@@ -191,6 +191,11 @@ class FCMMessage:
         self.priority = priority
 
     def send(self, to):
+        '''
+
+        :param to: token lub topic
+        :return:
+        '''
         logger = logging.getLogger('cuckoo')
         url = "https://fcm.googleapis.com/fcm/send"
         data = {}
