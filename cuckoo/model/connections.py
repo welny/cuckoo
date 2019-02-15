@@ -45,6 +45,8 @@ WAIT_WRITE_TIMEOUT_SEC = 10
 WAIT_READ_TIMEOUT_SEC = 10
 WRITE_RETRY = 3
 
+TIMEOUT_IDLE = 15
+
 provider_log = logging.getLogger("cuckoo")
 
 
@@ -298,7 +300,6 @@ class GatewayConnection(Connection):
             self._error_response_handler_worker.close()
 
     def _is_idle_timeout(self):
-        TIMEOUT_IDLE = 30
         return (time.time() - self._last_activity_time) >= TIMEOUT_IDLE
 
     class ErrorResponseHandlerWorker(threading.Thread):
